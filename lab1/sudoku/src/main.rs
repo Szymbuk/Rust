@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn check_sudoku_board(board: &[[i32; 9]; 9]) -> bool {
-    check_horizontally(&board) && check_vertically(&board) && check_squares(&board)
+    check_horizontally(board) && check_vertically(board) && check_squares(board)
 }
 
 fn check_horizontally(board: &[[i32; 9]; 9]) -> bool {
@@ -31,10 +31,10 @@ fn check_horizontally(board: &[[i32; 9]; 9]) -> bool {
 }
 
 fn check_vertically(board: &[[i32; 9]; 9]) -> bool {
-    for i in 0..board.len() {
+    for col in 0..board.len() {
         let mut counters = [0; 10];
-        for j in 0..board.len() {
-            let value: usize = board[j][i] as usize;
+        for row in board {
+            let value: usize = row[col] as usize;
             counters[value] += 1;
             if value != 0 && counters[value] > 1 {
                 return false;

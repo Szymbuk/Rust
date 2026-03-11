@@ -124,3 +124,87 @@ fn get_winner(board: &[[char; 3]; 3]) -> Option<char> {
     }
     None
 }
+
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+    #[test]
+    fn is_end_vertical(){
+        let board = [
+            ['X','X','X'],
+            ['O','X','O'],
+            ['O','O','X']
+        ];
+        let ans = game_end(&board);
+        assert_eq!(true,ans);
+    }
+
+    #[test]
+    fn is_end_horizontal(){
+        let board = [
+            ['O','O','O'],
+            ['X','X','O'],
+            ['X','O','X']
+        ];
+        let ans = game_end(&board);
+        assert_eq!(true,ans);
+    }
+
+    #[test]
+    fn is_end_diagonal(){
+        let board = [
+            ['O','X','O'],
+            ['X','O','X'],
+            ['X','O','O']
+        ];
+        let ans = game_end(&board);
+        assert_eq!(true,ans);
+    }
+
+
+    #[test]
+    fn get_winner_vertical(){
+        let board = [
+            ['X','X','X'],
+            ['O','X','O'],
+            ['O','O','X']
+        ];
+        let ans = get_winner(&board);
+        assert_eq!('X',ans.unwrap());
+    }
+
+    #[test]
+    fn get_winner_horizontal(){
+        let board = [
+            ['O','O','O'],
+            ['X','X','O'],
+            ['X','O','X']
+        ];
+        let ans = get_winner(&board);
+        assert_eq!('O',ans.unwrap());
+    }
+
+    #[test]
+    fn get_winner_diagonal(){
+        let board = [
+            ['O','X','O'],
+            ['X','O','X'],
+            ['X','O','O']
+        ];
+        let ans = get_winner(&board);
+        assert_eq!('O',ans.unwrap());
+    }
+
+    #[test]
+    fn get_winner_none(){
+        let board = [
+            ['O','X','O'],
+            ['X','O','X'],
+            ['X','O','X']
+        ];
+        let ans = get_winner(&board);
+        assert_eq!(None,ans);
+    }
+}
+
