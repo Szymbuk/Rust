@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Fraktal bez szablonów</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; margin: 0; }
+        canvas { background: #000; }
+    </style>
+</head>
+<body>
+
+<canvas id="plotno" width="1920" height="1080"></canvas>
+
+<script type="module">
+    // Importujemy automatycznie wygenerowany plik JS z folderu pkg
+    // PAMIĘTAJ: Zmień 'moj_fraktal.js' na nazwę swojego projektu z Cargo.toml, jeśli jest inna!
+    import init, { generate_fractal } from './pkg/fraktal.js';
+
+    async function uruchom() {
+        // Inicjalizacja modułu WebAssembly
+        await init();
+
+        const canvas = document.getElementById('plotno');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // Wywołujemy naszą funkcję z Rusta!
+        const surowePiksele = generate_fractal(w, h);
+
+        // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
+        const obraz = new ImageData(
+            new Uint8ClampedArray(surowePiksele),
+            w,
+            h
+        );
+
+        // Rysujemy na płótnie
+        ctx.putImageData(obraz, 0, 0);
+    }
+
+    uruchom();
+</script>
+</body>
+</html>
