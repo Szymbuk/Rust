@@ -46,6 +46,7 @@
         await init();
 
         canvas.addEventListener('wheel', handle_wheel);
+        window.addEventListener('keydown',handle_keys)
         draw();
     }
 
@@ -104,6 +105,44 @@
 
         // Rysujemy na płótnie
         ctx.putImageData(obraz, 0, 0);
+    }
+
+
+    function handle_keys(event){
+        clearTimeout(scroll_timer);
+        canvas.width = 480;
+        canvas.height = 270;
+
+        if (event.key === 's' || event.key === 'ArrowDown') {
+            let move = (y_max - y_min) * 0.1
+            y_max += move
+            y_min += move
+        }
+
+        if (event.key === 'w' || event.key === 'ArrowUp') {
+            let move = (y_max-y_min)*0.1
+            y_max -= move
+            y_min -= move
+        }
+
+        if (event.key === 'd' || event.key === 'ArrowRight') {
+            let move = (x_max-x_min)*0.1
+            x_max += move
+            x_min += move
+        }
+
+        if (event.key === 'a' || event.key === 'ArrowLeft') {
+            let move = (x_max-x_min)*0.1
+            x_max -= move
+            x_min -= move
+        }
+
+        if (!frame_waiting){
+            frame_waiting = true
+            requestAnimationFrame( () => {draw();frame_waiting = false} )
+        }
+
+        scroll_timer = setTimeout(default_resolution, 600)
     }
 
     uruchom();
