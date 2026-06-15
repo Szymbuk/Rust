@@ -5,16 +5,40 @@
     <title>Fraktal bez szablonów</title>
     <style>
         body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; margin: 0; }
-        canvas { background: #000;
+        canvas {
             width: 1920px;
             height: 1080px;
             image-rendering: pixelated;
         }
+        #container{
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+        }
+        #axis{
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        #fractal{
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+        }
     </style>
 </head>
 <body>
+<div id="container">
+    <canvas id="fractal" width="1920" height="1080"></canvas>
+    <canvas id="axis" width="1920" height="1080"></canvas>
+</div>
 
-<canvas id="plotno" width="1920" height="1080"></canvas>
 
 <script type="module">
 
@@ -26,7 +50,8 @@
     let y_min = -1.0;
     let y_max = 1.0;
     let iterations = 200;
-    const canvas = document.getElementById('plotno');
+    const canvas = document.getElementById('fractal');
+    const axis = document.getElementById('axis')
     let frame_waiting = false;
 
 
@@ -89,9 +114,9 @@
 
     function draw(){
         const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
-        const config = new FractalConfig(x_min,x_max,y_min,y_max,iterations,w,h)
+        const width = canvas.width;
+        const height = canvas.height;
+        const config = new FractalConfig(x_min,x_max,y_min,y_max,iterations,width,height)
 
         // Wywołujemy naszą funkcję z Rusta!
         const surowePiksele = generate_fractal(config);
@@ -99,12 +124,13 @@
         // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
         const obraz = new ImageData(
             new Uint8ClampedArray(surowePiksele),
-            w,
-            h
+            width,
+            height
         );
 
         // Rysujemy na płótnie
         ctx.putImageData(obraz, 0, 0);
+        draw_axis();
     }
 
 
@@ -143,6 +169,90 @@
         }
 
         scroll_timer = setTimeout(default_resolution, 600)
+    }
+
+    function draw_axis() {
+        const axis_canvas = document.getElementById('axis');
+        const ctx_axis = axis_canvas.getContext('2d');
+        const width = axis_canvas.width;
+        const height = axis_canvas.height;
+
+        // Czyszczenie poprzedniej klatki
+        ctx_axis.clearRect(0, 0, width, height);
+
+        // Pozycje głównego krzyża
+        let x_dist = -x_min / (x_max - x_min) * width;
+        let y_dist = -y_min / (y_max - y_min) * height;
+
+        // --- OBLICZANIE DYNAMICZNEJ SKALI ---
+        const math_width = x_max - x_min;
+        // Chcemy docelowo około 10-12 znaczników na całą szerokość ekranu
+        const target_step = math_width / 10;
+
+        // Logika do zaokrąglenia kroku do "ładnych" liczb (np. 0.1, 0.5, 1, 2, 50)
+        const exponent = Math.floor(Math.log10(target_step));
+        const fraction = target_step / Math.pow(10, exponent);
+
+        let step;
+        if (fraction < 1.5) step = 1 * Math.pow(10, exponent);
+        else if (fraction < 3) step = 2 * Math.pow(10, exponent);
+        else if (fraction < 7) step = 5 * Math.pow(10, exponent);
+        else step = 10 * Math.pow(10, exponent);
+
+        // --- RYSOWANIE GŁÓWNYCH OSI ---
+        ctx_axis.beginPath();
+        ctx_axis.strokeStyle = "rgba(200, 200, 200, 0.5)";
+        ctx_axis.lineWidth = 2;
+
+        ctx_axis.moveTo(x_dist, 0);
+        ctx_axis.lineTo(x_dist, height);
+        ctx_axis.moveTo(0, y_dist);
+        ctx_axis.lineTo(width, y_dist);
+
+        // Konfiguracja czcionki dla liczb
+        ctx_axis.fillStyle = "rgba(100, 100, 100, 0.8)";
+        ctx_axis.font = "14px Arial";
+
+        // --- ZNACZNIKI OSI X (Poziomej) ---
+        ctx_axis.textAlign = "center";
+        ctx_axis.textBaseline = "top";
+
+        let start_x = Math.ceil(x_min / step) * step;
+        for (let v = start_x; v <= x_max; v += step) {
+            // Pomiń zero, żeby nie rysować liczby na samym środku skrzyżowania
+            if (Math.abs(v) < step * 0.1) continue;
+
+            let x_pos = ((v - x_min) / (x_max - x_min)) * width;
+
+            // Pionowa kreska znacznika
+            ctx_axis.moveTo(x_pos, y_dist - 6);
+            ctx_axis.lineTo(x_pos, y_dist + 6);
+
+            // Etykieta (używamy toPrecision, by JavaScript sam użył notacji naukowej np. 1e-4)
+            let label = parseFloat(v.toPrecision(9)).toString();
+            ctx_axis.fillText(label, x_pos, y_dist + 12);
+        }
+
+        // --- ZNACZNIKI OSI Y (Pionowej) ---
+        ctx_axis.textAlign = "left";
+        ctx_axis.textBaseline = "middle";
+
+        let start_y = Math.ceil(y_min / step) * step;
+        for (let v = start_y; v <= y_max; v += step) {
+            if (Math.abs(v) < step * 0.1) continue;
+
+            let y_pos = ((v - y_min) / (y_max - y_min)) * height;
+
+            // Pozioma kreska znacznika
+            ctx_axis.moveTo(x_dist - 6, y_pos);
+            ctx_axis.lineTo(x_dist + 6, y_pos);
+
+            let label = parseFloat(v.toPrecision(9)).toString();
+            ctx_axis.fillText(label, x_dist + 12, y_pos);
+        }
+
+        // Nanieś wszystko na płótno
+        ctx_axis.stroke();
     }
 
     uruchom();
