@@ -5,7 +5,11 @@
     <title>Fraktal bez szablonów</title>
     <style>
         body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; margin: 0; }
-        canvas { background: #000; }
+        canvas { background: #000;
+            width: 1920px;
+            height: 1080px;
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -13,21 +17,83 @@
 <canvas id="plotno" width="1920" height="1080"></canvas>
 
 <script type="module">
-    // Importujemy automatycznie wygenerowany plik JS z folderu pkg
-    // PAMIĘTAJ: Zmień 'moj_fraktal.js' na nazwę swojego projektu z Cargo.toml, jeśli jest inna!
-    import init, { generate_fractal } from './pkg/fraktal.js';
+
+    import init, { generate_fractal,FractalConfig} from './pkg/fraktal.js';
+
+
+    let x_min = -2.0;
+    let x_max = 1.0;
+    let y_min = -1.0;
+    let y_max = 1.0;
+    let iterations = 200;
+    const canvas = document.getElementById('plotno');
+    let frame_waiting = false;
+
+
+
+    function default_resolution(){
+        canvas.width = 1920;
+        canvas.height = 1080;
+        draw()
+    }
+
+    let scroll_timer = setTimeout(default_resolution)
+
+
 
     async function uruchom() {
         // Inicjalizacja modułu WebAssembly
         await init();
 
-        const canvas = document.getElementById('plotno');
+        canvas.addEventListener('wheel', handle_wheel);
+        draw();
+    }
+
+
+    function handle_wheel(event){
+        clearTimeout(scroll_timer);
+        canvas.width = 480;
+        canvas.height = 270;
+
+        event.preventDefault();
+
+        let x_middle = (x_max + x_min) / 2;
+        let y_middle = (y_max + y_min) / 2;
+        let new_width;
+        let new_height;
+        if (event.deltaY <0) {
+
+            new_width = (x_max - x_min) * 0.9
+            new_height = (y_max - y_min) * 0.9
+
+
+        }
+        else{
+            new_width = (x_max - x_min) * 1.1
+            new_height = (y_max - y_min) * 1.1
+        }
+        x_min = x_middle - new_width / 2
+        x_max = x_middle + new_width / 2
+
+        y_min = y_middle - new_height / 2
+        y_max = y_middle + new_height / 2
+        if (!frame_waiting){
+            frame_waiting = true
+            requestAnimationFrame( () => {draw();frame_waiting = false} )
+        }
+
+        scroll_timer = setTimeout(default_resolution, 600)
+    }
+
+
+    function draw(){
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
         const h = canvas.height;
+        const config = new FractalConfig(x_min,x_max,y_min,y_max,iterations,w,h)
 
         // Wywołujemy naszą funkcję z Rusta!
-        const surowePiksele = generate_fractal(w, h);
+        const surowePiksele = generate_fractal(config);
 
         // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
         const obraz = new ImageData(

@@ -3,11 +3,30 @@ use wasm_bindgen::prelude::*;
 use num_complex::{Complex};
 
 // Makro #[wasm_bindgen] sprawia, że funkcja będzie widoczna w JavaScript
+#[wasm_bindgen]
+pub struct FractalConfig {
+    x_min: f64,
+    x_max: f64,
+    y_min: f64,
+    y_max: f64,
+    iterations: usize,
+    width: u32,
+    height: u32
+}
+#[wasm_bindgen]
+impl FractalConfig{
+
+    #[wasm_bindgen(constructor)]
+    pub fn new(    x_min: f64, x_max: f64, y_min: f64, y_max: f64, iterations: usize, width: u32, height: u32) -> FractalConfig{
+        FractalConfig{x_min, x_max, y_min, y_max, iterations, width, height}
+    }
+}
+
+
 
 #[wasm_bindgen]
-pub fn generate_fractal(width: u32, height:u32) -> Vec<u8>{
-    let size = (width * height * 4) as usize; // RGB and transparency
-    let mut piksels = vec![0; size];
+pub fn generate_fractal(config: FractalConfig) -> Vec<u8>{
+
 
     //
     // for i in (0..size).step_by(4) {
@@ -17,11 +36,15 @@ pub fn generate_fractal(width: u32, height:u32) -> Vec<u8>{
     //     piksels[i + 3] = 255; // A (255 oznacza pełną widoczność, brak przezroczystości)
     // }
     // aktualnie piksele to w600 h400
-    let x_min = -2.0;
-    let x_max = 1.0;
-    let y_min = -1.0;
-    let y_max = 1.0;
-    let iterations = 100;
+
+    // let x_min = -2.0;
+    // let x_max = 1.0;
+    // let y_min = -1.0;
+    // let y_max = 1.0;
+    // let iterations = 100;
+
+    let size = (config.width * config.height * 4) as usize; // RGB and transparency
+    let mut piksels = vec![0; size];
 
     /*
     const X_MIN: f32 = -2.0;
@@ -33,8 +56,8 @@ pub fn generate_fractal(width: u32, height:u32) -> Vec<u8>{
 
     for i in (0..size).step_by(4)
     {
-        let number = convert_to_complex_number(i, width, height, x_min, x_max, y_min, y_max);
-        let converges = check_convergence(number,iterations);
+        let number = convert_to_complex_number(i, config.width, config.height, config.x_min, config.x_max, config.y_min, config.y_max);
+        let converges = check_convergence(number,config.iterations);
 
         if !converges{
             piksels[i] = 255;
@@ -52,27 +75,27 @@ pub fn generate_fractal(width: u32, height:u32) -> Vec<u8>{
     piksels
 }
 
-fn convert_to_complex_number(x: usize, width: u32, height: u32, x_min:f32, x_max:f32, y_min:f32, y_max:f32) -> Complex<f32>{
+fn convert_to_complex_number(x: usize, width: u32, height: u32, x_min:f64, x_max:f64, y_min:f64, y_max:f64) -> Complex<f64>{
     let x = x/4;
-    let horizontal_step = (x_max-x_min)/(width as f32 - 1.0);
-    let vertical_step = (y_max-y_min)/(height as f32 - 1.0);
+    let horizontal_step = (x_max-x_min)/(width as f64 - 1.0);
+    let vertical_step = (y_max-y_min)/(height as f64 - 1.0);
 
-    println!("horizontal step: {horizontal_step}\n vertical step: {vertical_step}");
+    //println!("horizontal step: {horizontal_step}\n vertical step: {vertical_step}");
 
     let horizontal_pixel = x%(width as usize);
     let vertical_pixel = x/(width as usize);
-    println!("horizontal pixel: {horizontal_pixel}\n vertical pixel: {vertical_pixel}");
-    println!();
+    //println!("horizontal pixel: {horizontal_pixel}\n vertical pixel: {vertical_pixel}");
+    //println!();
 
-    let x_chord = x_min+horizontal_pixel as f32 * horizontal_step;
-    let y_chord = y_min+vertical_pixel as f32 * vertical_step;
+    let x_chord = x_min+horizontal_pixel as f64 * horizontal_step;
+    let y_chord = y_min+vertical_pixel as f64 * vertical_step;
     Complex{re:x_chord,im:y_chord}
 }
 
-fn check_convergence(number: Complex<f32>,iterations: usize) -> bool{
+fn check_convergence(number: Complex<f64>,iterations: usize) -> bool{
     let p = number; //creating p so it matches the math formula
     let mut z = Complex{re:0.0,im:0.0};
-    const UPPER_BOUND:f32 =2_i32.pow(2) as f32;
+    const UPPER_BOUND:f64 =2_i32.pow(2) as f64;
 
     let mut i =0;
     while  i < iterations && z.norm_sqr() < UPPER_BOUND {
