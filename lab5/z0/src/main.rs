@@ -1,5 +1,8 @@
 //mod main2;
 
+mod main2;
+mod main3;
+
 use std::ops::Add;
 
 #[derive(Debug)]
@@ -40,6 +43,7 @@ fn main() {
     // println!("{:?}",max(&ar2));
     // println!("{:?}",mean(&ar1));
     //main2::main2()
+    main3::main3()
 }
 
 

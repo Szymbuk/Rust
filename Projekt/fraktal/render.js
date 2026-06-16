@@ -2,6 +2,7 @@ import {state} from "./state.js";
 import  { generate_mandelbrot, MandelbrotConfig,
     generate_julia, JuliaConfig,
     generate_barnsley, BarnsleyConfig} from './pkg/fraktal.js';
+import {generate_mandelbrot_js} from "./src/generate_mandelbrot.js";
 
 function draw(){
     const canvas = document.getElementById('fractal');
@@ -14,8 +15,16 @@ function draw(){
 
     if (state.current_fractal === "mandelbrot") {
         state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value)
-        const config = new MandelbrotConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height);
-        surowePiksele = generate_mandelbrot(config);
+        const start_time = performance.now();
+
+        surowePiksele = generate_mandelbrot_js(
+            state.x_min, state.x_max, state.y_min, state.y_max,
+            state.iterations, width, height
+        );
+
+        const end_time = performance.now();
+        const time_taken = (end_time - start_time).toFixed(2);
+        console.log(`[JS Engine] Wygenerowanie fraktala zajęło: ${time_taken} ms`);
     }
     else if (state.current_fractal === "julia"){
         let c_re = parseFloat(document.getElementById('input_c_re').value);
@@ -34,7 +43,7 @@ function draw(){
 
 // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
     const obraz = new ImageData(
-        new Uint8ClampedArray(surowePiksele),
+        surowePiksele,
         width,
         height
     );
