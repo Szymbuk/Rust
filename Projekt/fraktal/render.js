@@ -13,19 +13,21 @@ function draw(){
 
 
     if (state.current_fractal === "mandelbrot") {
+        state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value)
         const config = new MandelbrotConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height);
         surowePiksele = generate_mandelbrot(config);
     }
     else if (state.current_fractal === "julia"){
         let c_re = parseFloat(document.getElementById('input_c_re').value);
         let c_im = parseFloat(document.getElementById('input_c_im').value);
+        state.iterations = parseInt(document.getElementById("input_julia_iterations").value)
 
         const config = new JuliaConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height, c_re, c_im);
         surowePiksele = generate_julia(config);
     }
     else if (state.current_fractal === "barnsley"){
-
-        let seed = parseFloat(document.getElementById('input_seed').value)
+        let seed = BigInt(document.getElementById('input_seed').value)
+        state.iterations = parseInt(document.getElementById("input_barnsley_iterations").value)
         const config = new BarnsleyConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height, seed);
         surowePiksele = generate_barnsley(config);
     }

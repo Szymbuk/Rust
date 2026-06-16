@@ -103,15 +103,24 @@ function fractal_selection(event){
 
     const julia_params = document.getElementById('julia_params');
     const barnsley_params = document.getElementById('barnsley_params');
+    const mandelbrot_params = document.getElementById('mandelbrot_params')
 
     // Pokaż/ukryj parametry w zależności od wyboru
     if (state.current_fractal === "julia") {
         julia_params.style.display = "block";
         barnsley_params.style.display = "none";
+        mandelbrot_params.style.display = "none"
+
 
     } else if (state.current_fractal === "barnsley") {
         julia_params.style.display = "none";
         barnsley_params.style.display = "block";
+        mandelbrot_params.style.display = "none"
+    }
+    else if (state.current_fractal === "mandelbrot") {
+        julia_params.style.display = "none";
+        barnsley_params.style.display = "none";
+        mandelbrot_params.style.display = "block"
     }
 
     // Załaduj domyślne współrzędne dla wybranego fraktala
@@ -120,6 +129,7 @@ function fractal_selection(event){
     state.x_max = view.x_max;
     state.y_min = view.y_min;
     state.y_max = view.y_max;
+    state.iterations = view.iterations;
 
     state.frame_waiting = false;
     clearTimeout(state.scroll_timer);
@@ -127,4 +137,16 @@ function fractal_selection(event){
 
 }
 
-export {handle_wheel, handle_keys, handle_mousemove,fractal_selection}
+function handle_input(input){
+    input.addEventListener('input', () => {
+        if (!state.frame_waiting) {
+            state.frame_waiting = true;
+            requestAnimationFrame(() => {
+                draw();
+                state.frame_waiting = false;
+            });
+        }
+    });
+}
+
+export {handle_wheel, handle_keys, handle_mousemove,fractal_selection,handle_input}
