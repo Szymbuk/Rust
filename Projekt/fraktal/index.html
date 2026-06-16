@@ -43,9 +43,52 @@
             pointer-events: none;
             z-index: 10;
         }
+        #managing_panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: sans-serif;
+            z-index: 10;
+        }
+        #managing_panel select, #managing_panel input {
+            margin-top: 5px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px;
+            width: 100%;
+        }
+
+
     </style>
 </head>
 <body>
+<div id="managing_panel">
+    <label for="choose_fractal">Wybierz fraktal:</label>
+    <select id="choose_fractal">
+        <option value="mandelbrot">Zbiór Mandelbrota</option>
+        <option value="julia">Zbiór Julii</option>
+        <option value="barnsley">Paproć Barnsleya</option>
+    </select>
+
+    <div id="julia_params" style="display: none; margin-top: 10px;">
+        <label>Parametr C (Re):</label><br>
+        <input type="number" id="input_c_re" value="-0.8" step="0.01"><br>
+        <label>Parametr C (Im):</label><br>
+        <input type="number" id="input_c_im" value="0.156" step="0.01">
+    </div>
+
+    <div id="barnsley_params" style="display: none; margin-top: 10px;">
+        <label>Seed:</label><br>
+        <input type="number" id="input_seed" value="1000" step="0.01"><br>
+    </div>
+</div>
+
+
 <div id="container">
     <canvas id="fractal" width="1920" height="1080"></canvas>
     <canvas id="axis" width="1920" height="1080"></canvas>
@@ -59,7 +102,9 @@
 
 <script type="module">
 
-    import init, { generate_fractal,FractalConfig} from './pkg/fraktal.js';
+    import init, { generate_mandelbrot, MandelbrotConfig,
+        generate_julia, JuliaConfig,
+        generate_barnsley, BarnsleyConfig} from './pkg/fraktal.js';
 
 
     let x_min = -2.0;
@@ -67,8 +112,16 @@
     let y_min = -1.0;
     let y_max = 1.0;
     let iterations = 200;
+    let current_fractal = "mandelbrot";
+
+
+
+    const default_params = {
+        mandelbrot: { x_min: -2.0, x_max: 1.0, y_min: -1.0, y_max: 1.0 },
+        julia: { x_min: -1.5, x_max: 1.5, y_min: -1.0, y_max: 1.0 },
+        barnsley: { x_min: -3, x_max: 3, y_min: -0.5, y_max: 10.5 }
+    }
     const canvas = document.getElementById('fractal');
-    const axis = document.getElementById('axis')
     const coords_box = document.getElementById('cords');
     let frame_waiting = false;
 
@@ -87,6 +140,40 @@
     async function uruchom() {
         // Inicjalizacja modułu WebAssembly
         await init();
+        const select_fraktal = document.getElementById('choose_fractal');
+        const julia_params = document.getElementById('julia_params');
+        const barnsley_params = document.getElementById('barnsley_params');
+
+
+        select_fraktal.addEventListener('change', (event) => {
+            current_fractal = event.target.value;
+
+            // Pokaż/ukryj parametry w zależności od wyboru
+            if (current_fractal === "julia") {
+                julia_params.style.display = "block";
+                barnsley_params.style.display = "none";
+
+            } else if (current_fractal === "barnsley") {
+                julia_params.style.display = "none";
+                barnsley_params.style.display = "block";
+            }
+
+            // Załaduj domyślne współrzędne dla wybranego fraktala
+            const widok = domyslne_widoki[aktualny_fraktal];
+            x_min = widok.x_min;
+            x_max = widok.x_max;
+            y_min = widok.y_min;
+            y_max = widok.y_max;
+
+            // Wymuś przeliczenie i narysowanie nowej klatki
+            if (!frame_waiting) {
+                frame_waiting = true;
+                requestAnimationFrame(() => { draw(); frame_waiting = false; });
+            }
+        });
+
+
+
 
         canvas.addEventListener('wheel', handle_wheel);
         window.addEventListener('keydown',handle_keys)
@@ -138,14 +225,14 @@
 
         if (event.key === 's' || event.key === 'ArrowDown') {
             let move = (y_max - y_min) * 0.1
-            y_max += move
-            y_min += move
+            y_max -= move
+            y_min -= move
         }
 
         if (event.key === 'w' || event.key === 'ArrowUp') {
             let move = (y_max-y_min)*0.1
-            y_max -= move
-            y_min -= move
+            y_max += move
+            y_min += move
         }
 
         if (event.key === 'd' || event.key === 'ArrowRight') {
@@ -181,7 +268,7 @@
 
         // Przeliczenie pikseli na układ matematyczny
         const re = x_min + (mouse_x / html_width) * (x_max - x_min);
-        const im = y_min + (mouse_y / html_height) * (y_max - y_min);
+        const im = y_max - (mouse_y / html_height) * (y_max - y_min);
 
         // Formatowanie tekstu (toExponential ładnie formatuje ekstremalnie małe liczby przy dużym zoomie)
         const re_text = (Math.abs(re) < 1e-6 && re !== 0) ? re.toExponential(6) : re.toFixed(7);
@@ -196,10 +283,26 @@
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
-        const config = new FractalConfig(x_min,x_max,y_min,y_max,iterations,width,height)
+        let surowePiksele;
 
-        // Wywołujemy naszą funkcję z Rusta!
-        const surowePiksele = generate_fractal(config);
+
+        if (current_fractal === "mandelbrot") {
+            const config = new MandelbrotConfig(x_min, x_max, y_min, y_max, iterations, width, height);
+            surowePiksele = generate_mandelbrot(config);
+        }
+        else if (current_fractal === "julia"){
+            let c_re = parseFloat(document.getElementById('input_c_re').value);
+            let c_im = parseFloat(document.getElementById('input_c_im').value);
+
+            const config = new JuliaConfig(x_min, x_max, y_min, y_max, iterations, width, height, c_re, c_im);
+            surowePiksele = generate_julia(config);
+        }
+        else if (current_fractal === "barnsley"){
+
+            let seed = parseFloat(document.getElementById('input_seed').value)
+            const config = new BarnsleyConfig(x_min, x_max, y_min, y_max, iterations, width, height, seed);
+            surowePiksele = generate_barnsley(config);
+        }
 
         // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
         const obraz = new ImageData(
@@ -225,7 +328,7 @@
 
         // Pozycje głównego krzyża
         let x_dist = -x_min / (x_max - x_min) * width;
-        let y_dist = -y_min / (y_max - y_min) * height;
+        let y_dist = y_max / (y_max - y_min) * height;
 
         // --- OBLICZANIE DYNAMICZNEJ SKALI ---
         const math_width = x_max - x_min;
@@ -237,7 +340,7 @@
         const fraction = target_step / Math.pow(10, exponent);
 
         let step;
-        if (fraction < 1.5) step = 1 * Math.pow(10, exponent);
+        if (fraction < 1.5) step = Math.pow(10, exponent);
         else if (fraction < 3) step = 2 * Math.pow(10, exponent);
         else if (fraction < 7) step = 5 * Math.pow(10, exponent);
         else step = 10 * Math.pow(10, exponent);
@@ -284,7 +387,7 @@
         for (let v = start_y; v <= y_max; v += step) {
             if (Math.abs(v) < step * 0.1) continue;
 
-            let y_pos = ((v - y_min) / (y_max - y_min)) * height;
+            let y_pos = height - ((v - y_min) / (y_max - y_min)) * height;
 
             // Pozioma kreska znacznika
             ctx_axis.moveTo(x_dist - 6, y_pos);
