@@ -29,29 +29,29 @@ impl MandelbrotConfig {
 #[wasm_bindgen]
 pub fn generate_mandelbrot(config: MandelbrotConfig) -> Vec<u8>{
     let size = (config.width * config.height * 4) as usize; // RGB and transparency
-    let mut piksels = vec![0; size];
+    let mut pixels = vec![0; size];
     for i in (0..size).step_by(4)
     {
         let number = convert_to_complex_number(i, config.width, config.height, config.x_min, config.x_max, config.y_min, config.y_max);
-        let converges = check_convergence(number,config.iterations);
+        let converges = check_convergence_mandelbrot(number, config.iterations);
 
         if !converges{
-            piksels[i] = 255;
-            piksels[i + 1] = 255;
-            piksels[i + 2] = 255;
-            piksels[i + 3] = 255;
+            pixels[i] = 255;
+            pixels[i + 1] = 255;
+            pixels[i + 2] = 255;
+            pixels[i + 3] = 255;
         }
         else{
-            piksels[i] = 0;
-            piksels[i + 1] = 0;
-            piksels[i + 2] = 0;
-            piksels[i + 3] = 255;
+            pixels[i] = 0;
+            pixels[i + 1] = 0;
+            pixels[i + 2] = 0;
+            pixels[i + 3] = 255;
         }
     }
-    piksels
+    pixels
 }
 
-fn convert_to_complex_number(x: usize, width: u32, height: u32, x_min:f64, x_max:f64, y_min:f64, y_max:f64) -> Complex<f64>{
+pub fn convert_to_complex_number(x: usize, width: u32, height: u32, x_min:f64, x_max:f64, y_min:f64, y_max:f64) -> Complex<f64>{
     let x = x/4;
     let horizontal_step = (x_max-x_min)/(width as f64 - 1.0);
     let vertical_step = (y_max-y_min)/(height as f64 - 1.0);
@@ -64,7 +64,7 @@ fn convert_to_complex_number(x: usize, width: u32, height: u32, x_min:f64, x_max
     Complex{re:x_chord,im:y_chord}
 }
 
-fn check_convergence(number: Complex<f64>,iterations: usize) -> bool{
+fn check_convergence_mandelbrot(number: Complex<f64>, iterations: usize) -> bool{
     let p = number; //creating p so it matches the math formula
     let mut z = Complex{re:0.0,im:0.0};
     const UPPER_BOUND:f64 =2_i32.pow(2) as f64;
@@ -86,14 +86,14 @@ mod tests {
     fn check_convergence_false_test(){
         let number = Complex{re:3.0,im:2.0};
         let iterations = 100;
-        assert_eq!(false,check_convergence(number,iterations))
+        assert_eq!(false, check_convergence_mandelbrot(number, iterations))
     }
 
     #[test]
     fn check_convergence_true_test(){
         let number = Complex{re:-0.25,im:-0.25};
         let iterations = 100;
-        assert_eq!(true,check_convergence(number,iterations))
+        assert_eq!(true, check_convergence_mandelbrot(number, iterations))
     }
 
     #[test]
