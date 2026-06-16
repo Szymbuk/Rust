@@ -1,0 +1,60 @@
+
+body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; margin: 0; }
+canvas {
+    width: 1920px;
+    height: 1080px;
+    image-rendering: pixelated;
+}
+#container{
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+}
+#axis{
+    width: 1920px;
+    height: 1080px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+#fractal{
+    width: 1920px;
+    height: 1080px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#cords {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 10;
+}
+#managing_panel {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: sans-serif;
+    z-index: 10;
+}
+#managing_panel select, #managing_panel input {
+    margin-top: 5px;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 5px;
+    width: 100%;
+}
+
