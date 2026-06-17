@@ -27,7 +27,7 @@ function handle_wheel(event){
     state.y_max = y_middle + new_height / 2
     if (!state.frame_waiting){
         state.frame_waiting = true
-        requestAnimationFrame( () => {draw();state.frame_waiting = false} )
+        requestAnimationFrame( async () => {await draw();state.frame_waiting = false} )
     }
 
     state.scroll_timer = setTimeout(default_resolution, 600)
@@ -66,7 +66,7 @@ function handle_keys(event){
 
     if (!state.frame_waiting){
         state.frame_waiting = true
-        requestAnimationFrame( () => {draw();state.frame_waiting = false} )
+        requestAnimationFrame( async () => {await draw();state.frame_waiting = false} )
     }
 
     state.scroll_timer = setTimeout(default_resolution, 600)
@@ -98,7 +98,7 @@ function handle_mousemove(event) {
     coords_box.innerHTML = `Re: ${re_text} <br>Im: ${im_text} `;
 }
 
-function fractal_selection(event){
+async function fractal_selection(event){
     state.current_fractal = event.target.value;
 
     const julia_params = document.getElementById('julia_params');
@@ -133,7 +133,7 @@ function fractal_selection(event){
 
     state.frame_waiting = false;
     clearTimeout(state.scroll_timer);
-    default_resolution();
+    await default_resolution();
 
 }
 
@@ -141,8 +141,8 @@ function handle_input(input){
     input.addEventListener('input', () => {
         if (!state.frame_waiting) {
             state.frame_waiting = true;
-            requestAnimationFrame(() => {
-                draw();
+            requestAnimationFrame(async () => {
+                await draw();
                 state.frame_waiting = false;
             });
         }

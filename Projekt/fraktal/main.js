@@ -29,7 +29,7 @@ async function uruchom() {
 
     let mandelbrot_params = document.getElementById("mandelbrot_params");
     mandelbrot_params.style.display = "block"
-    draw();
+    await draw();
 }
 
 

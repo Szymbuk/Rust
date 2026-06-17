@@ -4,27 +4,26 @@ import  { generate_mandelbrot, MandelbrotConfig,
     generate_barnsley, BarnsleyConfig} from './pkg/fraktal.js';
 import {generate_mandelbrot_js} from "./src/generate_mandelbrot.js";
 
-function draw(){
+export async function draw() {
     const canvas = document.getElementById('fractal');
-
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
     let surowePiksele;
 
-
     if (state.current_fractal === "mandelbrot") {
-        state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value)
+        state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value);
         const start_time = performance.now();
 
-        surowePiksele = generate_mandelbrot_js(
+        // 2. Dodajemy słowo 'await' przed wywołaniem
+        surowePiksele = await generate_mandelbrot_js(
             state.x_min, state.x_max, state.y_min, state.y_max,
             state.iterations, width, height
         );
 
         const end_time = performance.now();
         const time_taken = (end_time - start_time).toFixed(2);
-        console.log(`[JS Engine] Wygenerowanie fraktala zajęło: ${time_taken} ms`);
+        console.log(`[JS Multi-Thread] Wygenerowanie fraktala zajęło: ${time_taken} ms`);
     }
     else if (state.current_fractal === "julia"){
         let c_re = parseFloat(document.getElementById('input_c_re').value);
@@ -139,13 +138,13 @@ function draw_axis() {
 }
 
 
-function default_resolution(){
+async function default_resolution(){
     const canvas = document.getElementById('fractal');
 
     canvas.width = 1920;
     canvas.height = 1080;
-    draw()
+    await draw()
 }
 
 
-export {draw,default_resolution}
+export {default_resolution}
