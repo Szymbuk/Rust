@@ -4,7 +4,13 @@ import  { generate_mandelbrot, MandelbrotConfig,
     generate_barnsley, BarnsleyConfig} from './pkg/fraktal.js';
 import {generate_mandelbrot_js} from "./src/generate_mandelbrot.js";
 
+let globalRenderId = 0;
+
 export async function draw() {
+    // 2. Przy każdym starcie funkcji podbijamy licznik i "pobieramy numerek" dla tej klatki
+    globalRenderId++;
+    const myRenderId = globalRenderId;
+
     const canvas = document.getElementById('fractal');
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
@@ -15,15 +21,22 @@ export async function draw() {
         state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value);
         const start_time = performance.now();
 
-        // 2. Dodajemy słowo 'await' przed wywołaniem
         surowePiksele = await generate_mandelbrot_js(
             state.x_min, state.x_max, state.y_min, state.y_max,
             state.iterations, width, height
         );
 
+        // 3. UWAGA MAGIA! Zanim dotkniemy Canvasu, sprawdzamy bilet.
+        // Jeśli podczas naszego liczenia ktoś zdążył odpalić draw() ponownie,
+        // globalny numer będzie większy niż nasz. Wtedy grzecznie umieramy.
+        if (myRenderId !== globalRenderId) {
+            console.log(`[JS Engine] Odrzucono przestarzałą klatkę nr ${myRenderId}`);
+            return;
+        }
+
         const end_time = performance.now();
         const time_taken = (end_time - start_time).toFixed(2);
-        console.log(`[JS Multi-Thread] Wygenerowanie fraktala zajęło: ${time_taken} ms`);
+        console.log(`[JS Multi-Thread] Wygenerowanie klatki ${myRenderId} zajęło: ${time_taken} ms`);
     }
     else if (state.current_fractal === "julia"){
         let c_re = parseFloat(document.getElementById('input_c_re').value);

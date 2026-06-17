@@ -1,6 +1,7 @@
 // worker.js
 self.onmessage = function(event) {
-    const { id, x_min, x_max, y_min, y_max, iterations, width, height, startY, endY } = event.data;
+    // 1. Odbieramy jobId z paczki
+    const { jobId, id, x_min, x_max, y_min, y_max, iterations, width, height, startY, endY } = event.data;
 
     const chunkHeight = endY - startY;
     const pixels = new Uint8ClampedArray(width * chunkHeight * 4);
@@ -42,5 +43,5 @@ self.onmessage = function(event) {
     }
 
     // Odsyłamy wynik z powrotem używając Transferable Objects (zero kopiowania!)
-    self.postMessage({ pixels, startY }, [pixels.buffer]);
+    self.postMessage({ jobId, pixels, startY }, [pixels.buffer]);
 };
