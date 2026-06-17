@@ -1,5 +1,5 @@
 // Inicjujemy workery raz, przy ładowaniu pliku
-const numWorkers = navigator.hardwareConcurrency || 4;
+const numWorkers = 16
 const workers = [];
 for (let i = 0; i < numWorkers; i++) {
     // Ścieżka względem pliku HTML
