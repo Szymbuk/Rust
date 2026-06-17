@@ -2,6 +2,7 @@ use std::ops::Add;
 use num_complex::Complex;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use rayon::prelude::*;
 #[wasm_bindgen]
 pub struct JuliaConfig {
     x_min: f64,
@@ -29,25 +30,26 @@ impl JuliaConfig {
 pub fn generate_julia(config: JuliaConfig) -> Vec<u8>{
     let size = (config.width * config.height * 4) as usize; // RGB and transparency
     let mut pixels = vec![0; size];
+
     let c = Complex{ re: config.c_re, im: config.c_im };
-    for i in (0..size).step_by(4)
-    {
-        let number = crate::mandelbrot::convert_to_complex_number(i, config.width, config.height, config.x_min, config.x_max, config.y_min, config.y_max);
+    pixels.par_chunks_exact_mut(4).enumerate().for_each(|(i, pixel)|{
+        let number = crate::mandelbrot::convert_to_complex_number(4*i, config.width, config.height, config.x_min, config.x_max, config.y_min, config.y_max);
         let converges = check_convergence_julia(number,c, config.iterations);
 
         if !converges{
-            pixels[i] = 255;
-            pixels[i + 1] = 255;
-            pixels[i + 2] = 255;
-            pixels[i + 3] = 255;
+            pixel[0] = 255;
+            pixel[1] = 255;
+            pixel[2] = 255;
+            pixel[3] = 255;
         }
-        else{
-            pixels[i] = 0;
-            pixels[i + 1] = 0;
-            pixels[i + 2] = 0;
-            pixels[i + 3] = 255;
+        else {
+            pixel[0] = 0;
+            pixel[1] = 0;
+            pixel[2] = 0;
+            pixel[3] = 255;
         }
-    }
+    });
+
     pixels
 }
 

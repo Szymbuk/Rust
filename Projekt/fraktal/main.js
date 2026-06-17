@@ -1,13 +1,21 @@
 
 import {draw} from "./render.js";
 import {handle_mousemove,handle_keys,handle_wheel,fractal_selection,handle_input} from "./event.js";
-import init from "./pkg/fraktal.js"
+import init, {initThreadPool} from "./pkg/fraktal.js"
 
 const canvas = document.getElementById('fractal');
 
 async function uruchom() {
 // Inicjalizacja modułu WebAssembly
     await init();
+
+    const logicalCores = navigator.hardwareConcurrency || 4;
+
+    await initThreadPool(logicalCores);
+    console.log(`Uruchomiono wielowątkowość na ${logicalCores} rdzeniach!`);
+
+
+
     const select_fraktal = document.getElementById('choose_fractal');
     const param_inputs = [
         document.getElementById('input_c_re'),

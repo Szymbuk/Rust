@@ -15,7 +15,11 @@ function draw(){
     if (state.current_fractal === "mandelbrot") {
         state.iterations = parseInt(document.getElementById("input_mandelbrot_iterations").value)
         const config = new MandelbrotConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height);
+
+        const start = performance.now();
         surowePiksele = generate_mandelbrot(config);
+        const czas = performance.now() - start;
+        console.log(`[Rust multi-thread] Wygenerowanie klatki zajęło: ${czas.toFixed(2)} ms`);
     }
     else if (state.current_fractal === "julia"){
         let c_re = parseFloat(document.getElementById('input_c_re').value);
@@ -23,13 +27,23 @@ function draw(){
         state.iterations = parseInt(document.getElementById("input_julia_iterations").value)
 
         const config = new JuliaConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height, c_re, c_im);
+
+        const start = performance.now();
         surowePiksele = generate_julia(config);
+        const czas = performance.now() - start;
+        console.log(`[Rust multi-thread] Wygenerowanie klatki zajęło: ${czas.toFixed(2)} ms`);
+
     }
     else if (state.current_fractal === "barnsley"){
         let seed = BigInt(document.getElementById('input_seed').value)
         state.iterations = parseInt(document.getElementById("input_barnsley_iterations").value)
         const config = new BarnsleyConfig(state.x_min, state.x_max, state.y_min, state.y_max, state.iterations, width, height, seed);
+
+        const start = performance.now();
         surowePiksele = generate_barnsley(config);
+        const czas = performance.now() - start;
+        console.log(`[Rust multi-thread] Wygenerowanie klatki zajęło: ${czas.toFixed(2)} ms`);
+
     }
 
 // Przekształcamy tablicę z Rusta na format obrazu dla przeglądarki
