@@ -126,10 +126,10 @@ mod tests {
 
         let pixel = 0*4;
         let number = convert_to_complex_number(pixel, width, height, x_min, x_max, y_min, y_max);
-        assert_eq!(Complex{re:-2.0,im:-1.0},number);
+        assert_eq!(Complex{re:-2.0,im:1.0},number);
 
         let pixel = 120*4;
         let number = convert_to_complex_number(pixel, width, height, x_min, x_max, y_min, y_max);
-        assert_eq!(Complex{re:1.0,im:1.0},number);
+        assert_eq!(Complex{re:1.0,im:-1.0},number);
     }
 }
